@@ -78,15 +78,33 @@ CREATE TABLE audit_logs (
   performed_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- seed minimal roles and a demo user (password: demo123)
-INSERT INTO roles (name) VALUES ('ROLE_ADMIN'), ('ROLE_BASE_COMMANDER'), ('ROLE_LOGISTICS_OFFICER');
+-- ============================================
+-- SEED DATA (FIXED)
+-- ============================================
 
-INSERT INTO bases (code, name, location) VALUES ('BASE001','Alpha Base','Unknown');
+-- Fix sequences explicitly
+ALTER SEQUENCE bases_id_seq RESTART WITH 2;
+ALTER SEQUENCE roles_id_seq RESTART WITH 4;
+ALTER SEQUENCE users_id_seq RESTART WITH 2;
 
-INSERT INTO equipment_types (code, name, serialized) VALUES ('AMMO_9MM','9mm Ammunition', false), ('VEH_4x4','4x4 Utility Vehicle', true);
+-- Insert base with explicit ID=1
+INSERT INTO bases (id, code, name, location)
+VALUES (1, 'BASE001','Alpha Base','Unknown');
 
--- bcrypt for "demo123" (example dev hash – keep as-is for now)
-INSERT INTO users (username, name, password_hash, base_id)
-VALUES ('admin','Administrator','$2a$10$7Qm7G7a8dD8j9gS/2vJbIuVYpVJH2xkYvRC8m1oCI0a6KZq1QeE7W', 1);
+-- Equipment
+INSERT INTO equipment_types (id, code, name, serialized)
+VALUES (1, 'AMMO_9MM','9mm Ammunition', false),
+       (2, 'VEH_4x4','4x4 Utility Vehicle', true);
 
-INSERT INTO user_roles (user_id, role_id) VALUES (1,1);
+-- Roles
+INSERT INTO roles (id, name)
+VALUES (1,'ROLE_ADMIN'),
+       (2,'ROLE_BASE_COMMANDER'),
+       (3,'ROLE_LOGISTICS_OFFICER');
+
+-- Admin user (password demo123)
+INSERT INTO users (id, username, name, password_hash, base_id)
+VALUES (1,'admin','Administrator','$2a$10$7Qm7G7a8dD8j9gS/2vJbIuVYpVJH2xkYvRC8m1oCI0a6KZq1QeE7W', 1);
+
+INSERT INTO user_roles (user_id, role_id)
+VALUES (1,1);
