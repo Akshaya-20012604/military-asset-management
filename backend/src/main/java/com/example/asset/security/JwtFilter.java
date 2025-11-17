@@ -5,10 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.security.Principal;
 
@@ -19,9 +20,20 @@ public class JwtFilter extends OncePerRequestFilter {
     private String secret;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        // ✔ SKIP auth endpoints (login/register)
+        if (path.startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // ✔ Normal JWT processing for protected endpoints
         String auth = request.getHeader("Authorization");
 
         if (auth != null && auth.startsWith("Bearer ")) {
@@ -41,9 +53,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     request = new HttpServletRequestWrapperWithPrincipal(request, p);
                 }
 
-            } catch (Exception e) {
-                // invalid token - ignore; Spring Security will block protected endpoints if
-                // configured
+            } catch (Exception ignored) {
+                // invalid token → let Spring Security handle it
             }
         }
 
